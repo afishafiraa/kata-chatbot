@@ -1,0 +1,6 @@
+node_modules/
+.env
+.DS_Store
+api-service/node_modules/
+api-service/.env
+api-service/.vercel/

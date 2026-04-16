@@ -1,0 +1,272 @@
+config:
+  maxRecursion: 10
+
+pokemonAssistant:
+  volatile: true
+
+  # This file is the source template for the assignment.
+  # If you are building the flow manually in the current Bot Studio UI,
+  # follow docs/kata-dashboard-ui.md for the step-by-step state setup.
+  # Build and deploy the API service first so validateName can call /api/register.
+
+  # Configure this NLU in Bot Studio based on the Supermodel guide.
+  # Replace <your_username>:<your_project_name> after the project exists.
+  nlus:
+    supermodel:
+      type: nl
+      options:
+        nluId: "<your_username>:<your_project_name>"
+        entityName: "kata"
+        output: "phrase"
+        threshold: 0.8
+        flatten: true
+
+  intents:
+    startTelegram:
+      initial: true
+      type: text
+      condition: "content == '/start'"
+
+    askPokemon:
+      initial: true
+      type: text
+      condition: "/pokemon|info|detail|about|information/i.test(content)"
+
+    captureName:
+      type: text
+      # In Bot Studio UI, add:
+      # - classifier: NLU supermodel, matchWith person, custom option "labels: true"
+      # - attribute: name -> path person
+      condition: "attributes.name && attributes.name.length > 0"
+
+    registerStatus:
+      type: command
+      condition: "content == 'register_status'"
+
+    pokemonStatus:
+      type: command
+      condition: "content == 'pokemon_status'"
+
+    reenter:
+      type: command
+      condition: "content == 'reenter'"
+
+  states:
+    entry:
+      initial: true
+      transitions:
+        askRegistration:
+          condition: "intent == 'startTelegram' && !context.isRegistered"
+          mapping:
+            context.telegramSenderName: metadata.telegramSenderName
+        readyForPokemon:
+          condition: "intent == 'startTelegram' && context.isRegistered"
+        fetchPokemon:
+          condition: "intent == 'askPokemon' && context.isRegistered"
+          mapping:
+            context.lastQuery: content
+        askRegistrationFromPokemon:
+          condition: "intent == 'askPokemon' && !context.isRegistered"
+          mapping:
+            context.pendingPokemonQuery: content
+        askRegistration:
+          fallback: true
+
+    askRegistration:
+      action:
+        - name: welcomeMessage
+        - name: askNameMessage
+      transitions:
+        validateName:
+          condition: "intent == 'captureName'"
+          mapping:
+            context.fullName: attributes.name[0].value || attributes.name[0]
+        invalidName:
+          fallback: true
+
+    askRegistrationFromPokemon:
+      action:
+        - name: registrationRequiredMessage
+        - name: askNameMessage
+      transitions:
+        validateName:
+          condition: "intent == 'captureName'"
+          mapping:
+            context.fullName: attributes.name[0].value || attributes.name[0]
+        invalidName:
+          fallback: true
+
+    invalidName:
+      action:
+        - name: invalidNameMessage
+      transitions:
+        askRegistration:
+          fallback: true
+
+    validateName:
+      action:
+        - name: registerUserApi
+        - name: emitRegisterStatus
+      transitions:
+        registrationSuccess:
+          condition: "intent == 'registerStatus' && payload.success"
+          mapping:
+            context.isRegistered: true
+            context.registeredName: payload.user.fullName
+        registrationFailed:
+          fallback: true
+
+    registrationSuccess:
+      action:
+        - name: registrationSuccessMessage
+      transitions:
+        fetchPokemonAfterRegister:
+          condition: "context.pendingPokemonQuery"
+          mapping:
+            context.lastQuery: context.pendingPokemonQuery
+            context.pendingPokemonQuery: null
+        readyForPokemon:
+          fallback: true
+
+    registrationFailed:
+      action:
+        - name: registrationFailedMessage
+      transitions:
+        askRegistration:
+          fallback: true
+
+    readyForPokemon:
+      end: true
+      action:
+        - name: pokemonHelpMessage
+
+    fetchPokemonAfterRegister:
+      action:
+        - name: fetchPokemonApiFromPending
+        - name: emitPokemonStatus
+      transitions:
+        pokemonFound:
+          condition: "intent == 'pokemonStatus' && payload.success"
+          mapping:
+            context.lastPokemonName: payload.pokemonName
+        pokemonNotFound:
+          fallback: true
+
+    fetchPokemon:
+      action:
+        - name: fetchPokemonApi
+        - name: emitPokemonStatus
+      transitions:
+        pokemonFound:
+          condition: "intent == 'pokemonStatus' && payload.success"
+          mapping:
+            context.lastPokemonName: payload.pokemonName
+        pokemonNotFound:
+          fallback: true
+
+    pokemonFound:
+      end: true
+      action:
+        - name: pokemonDetailMessage
+
+    pokemonNotFound:
+      end: true
+      action:
+        - name: pokemonNotFoundMessage
+
+  actions:
+    welcomeMessage:
+      type: text
+      options:
+        text: "Hi! I can help you with detailed Pokemon information."
+
+    askNameMessage:
+      type: text
+      options:
+        text: "Before we continue, please type your full name for registration."
+
+    registrationRequiredMessage:
+      type: text
+      options:
+        text: "You need to register first before using the Pokemon feature."
+
+    invalidNameMessage:
+      type: text
+      options:
+        text: "I couldn't detect a proper person name. Please type your real full name, for example: Ash Ketchum."
+
+    registerUserApi:
+      type: api
+      options:
+        method: "POST"
+        uri: "https://YOUR_API_BASE_URL/api/register"
+        headers:
+          Content-Type: "application/json"
+        body:
+          telegramUserId: "$(metadata.senderId || metadata.telegramSenderId || '')"
+          telegramSenderName: "$(metadata.telegramSenderName || '')"
+          fullName: "$(context.fullName)"
+          channelType: "$(metadata.channelType || 'telegram')"
+
+    emitRegisterStatus:
+      type: command
+      options:
+        command: "register_status"
+        payload:
+          success: "$(result.success)"
+          message: "$(result.message)"
+          user: "$(result.user)"
+
+    registrationSuccessMessage:
+      type: text
+      options:
+        text: "$(payload.message)\n\nNow ask me about a Pokemon, for example: pokemon pikachu"
+
+    registrationFailedMessage:
+      type: text
+      options:
+        text: "$(payload.message || 'Registration failed. Please try again.')"
+
+    pokemonHelpMessage:
+      type: text
+      options:
+        text: "Ask me about any Pokemon, for example:\n- pokemon pikachu\n- tell me about charizard\n- pokemon detail bulbasaur"
+
+    fetchPokemonApi:
+      type: api
+      options:
+        method: "POST"
+        uri: "https://YOUR_API_BASE_URL/api/pokemon/query"
+        headers:
+          Content-Type: "application/json"
+        body:
+          query: "$(context.lastQuery)"
+
+    fetchPokemonApiFromPending:
+      type: api
+      options:
+        method: "POST"
+        uri: "https://YOUR_API_BASE_URL/api/pokemon/query"
+        headers:
+          Content-Type: "application/json"
+        body:
+          query: "$(context.lastQuery)"
+
+    emitPokemonStatus:
+      type: command
+      options:
+        command: "pokemon_status"
+        payload:
+          success: "$(result.success)"
+          message: "$(result.message)"
+          pokemonName: "$(result.data.name)"
+
+    pokemonDetailMessage:
+      type: text
+      options:
+        text: "$(payload.message)"
+
+    pokemonNotFoundMessage:
+      type: text
+      options:
+        text: "$(payload.message || 'Sorry, I could not find that Pokemon.')"
