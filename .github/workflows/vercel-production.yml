@@ -12,9 +12,6 @@ on:
 jobs:
   deploy-production:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: api-service
 
     steps:
       - name: Checkout repository
@@ -31,15 +28,9 @@ jobs:
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build project artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy to Vercel
         run: >
-          vercel deploy --prebuilt --prod
+          vercel deploy --prod
           --token=${{ secrets.VERCEL_TOKEN }}
           --env MYSQL_HOST=${{ secrets.MYSQL_HOST }}
           --env MYSQL_PORT=${{ secrets.MYSQL_PORT }}
