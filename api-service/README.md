@@ -152,6 +152,13 @@ Official references:
 - [Vercel Environment Variables](https://vercel.com/docs/environment-variables)
 - [GitHub Actions with Vercel](https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel)
 
+This project also includes:
+
+- [`vercel.json`](/Users/gaogao/Documents/New%20project/api-service/vercel.json)
+- [`api/index.js`](/Users/gaogao/Documents/New%20project/api-service/api/index.js)
+
+That follows Vercel's documented Express pattern of routing incoming requests to an API entrypoint, which is useful when a deployment completes successfully but otherwise serves `404`.
+
 ### Project root
 
 Deploy [`api-service/`](/Users/gaogao/Documents/New%20project/api-service) as its own Vercel project.
