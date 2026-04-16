@@ -30,7 +30,7 @@ jobs:
 
       - name: Deploy to Vercel
         run: >
-          vercel deploy api-service --prod
+          vercel deploy --prod
           --token=${{ secrets.VERCEL_TOKEN }}
           --env MYSQL_HOST=${{ secrets.MYSQL_HOST }}
           --env MYSQL_PORT=${{ secrets.MYSQL_PORT }}
