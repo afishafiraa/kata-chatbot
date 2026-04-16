@@ -7,6 +7,11 @@ This workspace gives you a starter implementation for the assignment:
 - `docs/architecture.md`: a diagram and short architecture explanation
 - `docs/kata-dashboard-ui.md`: a step-by-step guide for the current Bot Studio UI
 
+## Live references
+
+- API base URL: [https://kata-chatbot.vercel.app](https://kata-chatbot.vercel.app)
+- Telegram bot: [https://t.me/pokkemonTestBot](https://t.me/pokkemonTestBot)
+
 ## Recommended architecture
 
 1. Telegram user chats with your bot.
@@ -103,6 +108,24 @@ If your dashboard looks like the state editor from our chat:
 
 Use [`docs/kata-dashboard-ui.md`](/Users/gaogao/Documents/New%20project/docs/kata-dashboard-ui.md) for the exact state-by-state steps for that UI.
 
+The actual simplified flow used in this project is:
+
+```text
+init -> askRegistration -> validateName -> registrationSuccess -> readyForPokemon -> fetchPokemon
+```
+
+with these side branches:
+
+```text
+validateName -> registrationFailed
+fetchPokemon -> pokemonFound
+fetchPokemon -> pokemonNotFound
+pokemonFound -> readyForPokemon
+pokemonNotFound -> readyForPokemon
+```
+
+`invalidName` is documented as optional, because default transitions on waiting states can create loops in the current dashboard UI.
+
 ### 5. Deploy the API service
 
 Use the service in [`api-service/README.md`](/Users/gaogao/Documents/New%20project/api-service/README.md).
@@ -116,13 +139,13 @@ Important:
 After deployment, copy the public base URL, for example:
 
 ```text
-https://your-api.example.com
+https://kata-chatbot.vercel.app
 ```
 
 Update `bot.yml` placeholders:
 
-- `https://YOUR_API_BASE_URL/api/register`
-- `https://YOUR_API_BASE_URL/api/pokemon/query`
+- `https://kata-chatbot.vercel.app/api/register`
+- `https://kata-chatbot.vercel.app/api/pokemon/query`
 
 ### 6. Deploy to Telegram
 
@@ -142,15 +165,43 @@ https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=<YOUR_KATA_WEBHOOK_U
 
 8. Test the bot in Telegram
 
+Current live bot link:
+
+- [https://t.me/pokkemonTestBot](https://t.me/pokkemonTestBot)
+
 ## Submission items
 
 After you finish deployment, your submission can be:
 
-- Telegram Bot ID: from BotFather / your Telegram bot username
+- Telegram Bot ID / username: [`@pokkemonTestBot`](https://t.me/pokkemonTestBot)
 - `bot.yml`: [`bot.yml`](/Users/gaogao/Documents/New%20project/bot.yml)
 - API service repository URL: push [`api-service/`](/Users/gaogao/Documents/New%20project/api-service) to GitHub
 - README setup instructions: included in [`api-service/README.md`](/Users/gaogao/Documents/New%20project/api-service/README.md)
 - Diagram: [`docs/architecture.md`](/Users/gaogao/Documents/New%20project/docs/architecture.md)
+
+## About `bot.yml` export
+
+I could verify Kata's docs for Publish, Revision List, Deployment, Environment, and Bot Studio, but I could not find an official dashboard guide for exporting a full `bot.yml` file from Kata Platform.
+
+What I found:
+
+- publish creates a new revision in `Revision List`
+- deployment packages the published bot for environments
+- the docs do not describe a built-in `Export bot.yml` action in the dashboard
+
+Sources:
+
+- [Start Your First Chatbot](https://docs.kata.ai/kata-platform/documentation-content/start-your-first-chatbot)
+- [Bot Studio Tutorial](https://docs.kata.ai/tutorials/bot-studio)
+
+So the safest practical answer is:
+
+1. Check `Revision List` and the flow/project menu for an `Export`, `Download`, or `YAML` action.
+2. If that option is not available in your UI, keep [`bot.yml`](/Users/gaogao/Documents/New%20project/bot.yml) in Git as your source-of-truth copy and update it manually to match the dashboard configuration.
+
+Inference:
+
+- your current dashboard version may not support a direct `bot.yml` export from the UI, or the feature may exist outside the docs I could verify.
 
 ## Notes
 

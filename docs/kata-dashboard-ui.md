@@ -38,20 +38,46 @@ So the best order is:
 2. Deploy it to a public URL.
 3. Put that public URL into the Kata API action.
 
+Current live API:
+
+- `https://kata-chatbot.vercel.app`
+
 ## Intents vs States
 
 Use this rule:
 
 - Create `captureName`, `askPokemon`, `registerStatus`, and `pokemonStatus` in `Intents`
-- Create `askRegistration`, `validateName`, `readyForPokemon`, and the rest in `States`
-- Create fallback behavior such as `askRegistration -> invalidName` in `States`, not in `Intents`
+- Create `init`, `askRegistration`, `validateName`, `readyForPokemon`, and the rest in `States`
+- Keep the main flow simple first, then add optional fallback states later
+
+## Actual flow used in this project
+
+This guide now follows the simpler flow based on your current diagram:
+
+```mermaid
+flowchart TD
+    init["init"] --> askRegistration["askRegistration"]
+    askRegistration --> validateName["validateName"]
+    validateName --> registrationSuccess["registrationSuccess"]
+    validateName --> registrationFailed["registrationFailed"]
+    registrationSuccess --> readyForPokemon["readyForPokemon"]
+    readyForPokemon --> fetchPokemon["fetchPokemon"]
+    fetchPokemon --> pokemonFound["pokemonFound"]
+    fetchPokemon --> pokemonNotFound["pokemonNotFound"]
+    pokemonFound --> readyForPokemon
+    pokemonNotFound --> readyForPokemon
+```
+
+Optional:
+
+- `invalidName` can be created as an extra helper state, but it is not part of the main flow in this guide because automatic default transitions can easily create loops in this UI.
 
 ## Recommended state order for this UI
 
 Create and save the states in this order:
 
-1. `askRegistration`
-2. `invalidName`
+1. `init`
+2. `askRegistration`
 3. `validateName`
 4. `registrationSuccess`
 5. `registrationFailed`
@@ -59,17 +85,41 @@ Create and save the states in this order:
 7. `fetchPokemon`
 8. `pokemonFound`
 9. `pokemonNotFound`
+10. `invalidName` optional later
 
-This is easier than starting with a routing state such as `entry`.
+This matches your actual diagram more closely than the older `entry`-based template.
 
 ## State-by-state setup
+
+### `init`
+
+Overview:
+
+- State Name: `init`
+- Initial State: `ON`
+- End State: `OFF`
+
+Actions:
+
+- `initMessage`
+  - type: `Text`
+  - text: `Welcome. Type /start to begin.`
+
+Transition:
+
+- target: `askRegistration`
+- condition:
+
+```js
+intent == 'startTelegram'
+```
 
 ### `askRegistration`
 
 Overview:
 
 - State Name: `askRegistration`
-- Initial State: `ON`
+- Initial State: `OFF`
 - End State: `OFF`
 
 Actions:
@@ -90,30 +140,7 @@ Transition while creating:
 intent == 'captureName'
 ```
 
-After the state is saved, add a second transition from the canvas:
-
-- source: `askRegistration`
-- target: `invalidName`
-- condition: empty
-- `Default`: `ON`
-
-### `invalidName`
-
-Overview:
-
-- State Name: `invalidName`
-
-Actions:
-
-- `invalidNameMessage`
-  - type: `Text`
-  - text: `I couldn't detect a proper person name. Please type your real full name, for example: Ash Ketchum.`
-
-Transition:
-
-- target: `askRegistration`
-- condition: empty
-- `Default`: `ON`
+Do not add a default transition here in the main flow. Let this state wait for the next user message.
 
 ### `validateName`
 
@@ -126,7 +153,7 @@ Actions:
 - `registerUserApi`
   - type: `API`
   - method: `POST`
-  - URL: `https://YOUR_API_BASE_URL/api/register`
+  - URL: `https://kata-chatbot.vercel.app/api/register`
   - headers:
 
 ```json
@@ -248,7 +275,7 @@ Actions:
 - `fetchPokemonApi`
   - type: `API`
   - method: `POST`
-  - URL: `https://YOUR_API_BASE_URL/api/pokemon/query`
+  - URL: `https://kata-chatbot.vercel.app/api/pokemon/query`
   - headers:
 
 ```json
@@ -338,11 +365,29 @@ If the create-state form only allows one transition:
 
 Example:
 
-- first create `askRegistration -> validateName`
-- then after save, add `askRegistration -> invalidName` as the default transition
+- first create `init -> askRegistration`
+- then after save, add transitions such as `validateName -> registrationFailed` or `fetchPokemon -> pokemonNotFound`
+
+## Optional `invalidName`
+
+If you want to add `invalidName` later, use it only after the main flow is already stable.
+
+Suggested setup:
+
+- State Name: `invalidName`
+- Action text: `I couldn't detect a proper person name. Please type your real full name, for example: Ash Ketchum.`
+- Transition back to `askRegistration`
+
+Practical warning:
+
+- in this UI, default transitions from waiting states can easily create loops, so do not wire `askRegistration -> invalidName` as an immediate default transition unless you have tested it carefully
 
 ## API verification before connecting Kata
 
 Before you configure the Kata API action, verify the registration API works.
 
 See [`api-service/README.md`](/Users/gaogao/Documents/New%20project/api-service/README.md) for setup and test commands.
+
+Telegram bot channel for final testing:
+
+- [https://t.me/pokkemonTestBot](https://t.me/pokkemonTestBot)

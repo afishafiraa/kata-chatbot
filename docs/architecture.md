@@ -23,7 +23,12 @@ flowchart LR
 ## Suggested technology choices
 
 - Chatbot platform: Kata Platform
-- Messaging channel: Telegram
+- Messaging channel: Telegram ([`@pokkemonTestBot`](https://t.me/pokkemonTestBot))
 - API service: Node.js + Express
 - Database: MySQL
 - External data source: PokeAPI
+
+## Current deployment
+
+- API base URL: [https://kata-chatbot.vercel.app](https://kata-chatbot.vercel.app)
+- Telegram bot: [https://t.me/pokkemonTestBot](https://t.me/pokkemonTestBot)

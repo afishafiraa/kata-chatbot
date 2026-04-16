@@ -11,6 +11,10 @@ It works for:
 - local development with `npm run dev`
 - deployment to Vercel as an Express app
 
+Live deployment:
+
+- API base URL: [https://kata-chatbot.vercel.app](https://kata-chatbot.vercel.app)
+
 ## Endpoints
 
 ### `GET /health`
@@ -269,13 +273,13 @@ and passes the `MYSQL_*` values from GitHub secrets to the production deployment
 
 Open:
 
-- `https://YOUR_VERCEL_PROJECT.vercel.app/`
-- `https://YOUR_VERCEL_PROJECT.vercel.app/health`
+- `https://kata-chatbot.vercel.app/`
+- `https://kata-chatbot.vercel.app/health`
 
 Then test the registration endpoint:
 
 ```bash
-curl -X POST https://YOUR_VERCEL_PROJECT.vercel.app/api/register \
+curl -X POST https://kata-chatbot.vercel.app/api/register \
   -H "Content-Type: application/json" \
   -d '{
     "telegramUserId": "123456789",
@@ -287,8 +291,8 @@ curl -X POST https://YOUR_VERCEL_PROJECT.vercel.app/api/register \
 
 Use the deployed Vercel URL in Kata:
 
-- `https://YOUR_VERCEL_PROJECT.vercel.app/api/register`
-- `https://YOUR_VERCEL_PROJECT.vercel.app/api/pokemon/query`
+- `https://kata-chatbot.vercel.app/api/register`
+- `https://kata-chatbot.vercel.app/api/pokemon/query`
 
 ## Deployment suggestions
 
@@ -325,7 +329,7 @@ Example:
 
 In your API actions, use:
 
-- `POST https://YOUR_API_BASE_URL/api/register`
-- `POST https://YOUR_API_BASE_URL/api/pokemon/query`
+- `POST https://kata-chatbot.vercel.app/api/register`
+- `POST https://kata-chatbot.vercel.app/api/pokemon/query`
 
 Both endpoints return HTTP `200` and JSON to align with Kata's documented API action expectations.

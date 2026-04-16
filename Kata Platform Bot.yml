@@ -1,0 +1,222 @@
+id: aa56468f-beca-4a37-a62f-36c70e17acf3
+revision: 505a825f874fd8bd511df4403d7c1a3bb971c1f7
+name: pokepokemon-chatbot
+tag: latest
+deleted_at: null
+desc: 'Pokemon chat bot in Telegram'
+timezone: 9
+flows:
+    chatbotFlow:
+        active: true
+        volatile: false
+        fallback: false
+        intents:
+            captureName:
+                type: text
+                initial: false
+                fallback: false
+                classifier:
+                    nlu: supermodel
+                    match: person
+                    options: {}
+                attributes:
+                    name:
+                        nlu: supermodel
+                        path: person
+            startTelegram:
+                type: text
+                initial: true
+                fallback: false
+                condition: 'content == "/start"'
+            registerStatus:
+                type: command
+                initial: false
+                fallback: false
+                condition: 'content == "register_status"'
+            pokemonStatus:
+                type: command
+                initial: false
+                fallback: false
+                condition: 'content == "pokemon_status"'
+            askPokemon:
+                type: text
+                initial: true
+                fallback: false
+                condition: /pokemon|info|detail|about|information/i.test(content)
+            reenter:
+                type: command
+                initial: false
+                fallback: false
+                condition: 'content == "reenter"'
+        states:
+            askRegistration:
+                transitions:
+                    validateName:
+                        condition: 'intent == "captureName"'
+                    invalidName:
+                        fallback: true
+                action:
+                    -
+                        name: welcomeMessage
+                    -
+                        name: askNameMessage
+                initial: false
+            invalidName:
+                transitions: {}
+                action: invalidNameMessage
+            validateName:
+                transitions:
+                    registrationSuccess:
+                        fallback: false
+                        condition: 'ntent == "registerStatus" && payload.success'
+                        priority: 1
+                    registrationFailed:
+                        fallback: true
+                        priority: 2
+                action:
+                    -
+                        name: registerUserApi
+                    -
+                        name: emitRegisterStatus
+                enter:
+                    context.fullName: 'attributes.name[0].value || attributes.name[0]'
+            registrationSuccess:
+                transitions:
+                    readyForPokemon:
+                        fallback: true
+                action: registrationSuccessMessage
+            registrationFailed:
+                transitions: {}
+                action: registrationFailedMessage
+                initial: false
+            readyForPokemon:
+                transitions:
+                    fetchPokemon:
+                        condition: 'intent == "askPokemon"'
+                action: pokemonHelpMessage
+            fetchPokemon:
+                transitions:
+                    pokemonFound:
+                        fallback: true
+                        condition: 'intent == "pokemonStatus" && payload.success'
+                    pokemonNotFound:
+                        fallback: true
+                action:
+                    -
+                        name: fetchPokemonApi
+                    -
+                        name: emitPokemonStatus
+            pokemonFound:
+                transitions:
+                    readyForPokemon:
+                        fallback: true
+                action: pokemonDetailMessage
+            pokemonNotFound:
+                transitions:
+                    readyForPokemon:
+                        fallback: true
+                action: pokemonNotFoundMessage
+            init:
+                transitions:
+                    askRegistration:
+                        condition: 'intent == "startTelegram"'
+                action: initMessage
+                initial: true
+        actions:
+            sayDontUnderstand:
+                type: text
+                options:
+                    text: 'Maaf saya belum mengerti :('
+            registration:
+                type: text
+                options:
+                    text:
+                        - regist
+                        - daftar
+                        - register
+            welcomeMessage:
+                type: text
+                options:
+                    text: 'Hi! I can help you with detailed Pokemon information.'
+            askNameMessage:
+                type: text
+                options:
+                    text: 'Before we continue, please type your full name for registration.'
+            invalidNameMessage:
+                type: text
+                options:
+                    text: 'I couldn''t detect a proper person name. Please type your real full name, for example: Ash Ketchum.'
+            registerUserApi:
+                type: api
+                options:
+                    uri: 'https://kata-chatbot.vercel.app/api/register'
+                    method: POST
+                    isAsync: false
+                    body:
+                        telegramUserId: '$(metadata.senderId || metadata.telegramSenderId || '''')'
+                        telegramSenderName: '$(metadata.telegramSenderName || '''')'
+                        fullName: $(context.fullName)
+                        channelType: '$(metadata.channelType || ''telegram'')'
+                    headers:
+                        Content-Type: application/json
+            emitRegisterStatus:
+                type: command
+                options:
+                    command: register_status
+                    payload:
+                        success: $(result.success)
+                        message: $(result.message)
+                        user: $(result.user)
+            registrationSuccessMessage:
+                type: text
+                options:
+                    text: "$(payload.message)\n\nNow ask me about a Pokemon, for example: pokemon pikachu"
+            registrationFailedMessage:
+                type: text
+                options:
+                    text: '$(payload.message || ''Registration failed. Please try again.'')'
+            pokemonHelpMessage:
+                type: text
+                options:
+                    text: 'Ask me about any Pokemon, for example: pokemon pikachu, tell me about charizard, pokemon detail bulbasaur'
+            fetchPokemonApi:
+                type: api
+                options:
+                    uri: 'https://kata-chatbot.vercel.app/api/pokemon/query'
+                    method: POST
+                    isAsync: false
+                    body:
+                        query: $(context.lastQuery)
+                    headers:
+                        Content-Type: application/json
+            emitPokemonStatus:
+                type: command
+                options:
+                    command: pokemon_status
+                    payload:
+                        success: $(result.success)
+                        message: $(result.message)
+                        pokemonName: $(result.data.name)
+            pokemonDetailMessage:
+                type: text
+                options:
+                    text: $(payload.message)
+            pokemonNotFoundMessage:
+                type: text
+                options:
+                    text: '$(payload.message || ''Sorry, I could not find that Pokemon.'')'
+            initMessage:
+                type: text
+                options:
+                    text: 'Welcome. Type /start to begin.'
+        methods: {}
+nlus:
+    supermodel:
+        type: nl
+        options:
+            nluId: 'afishafiraa:pokepokemon-chatbot'
+            threshold: 0.8
+            output: phrase
+            entity: kata
+methods: {}
+config: {}
