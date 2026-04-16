@@ -62,6 +62,8 @@ Optional query params:
 
 Copy `.env.example` to `.env`.
 
+`docker compose` and the Node.js app both read their MySQL settings from this file, so put your real local credentials there instead of hardcoding them in `docker-compose.yml`.
+
 ### 2. Start MySQL and Adminer
 
 ```bash
@@ -148,6 +150,7 @@ Official references:
 - [Express on Vercel](https://vercel.com/guides/using-express-with-vercel)
 - [Vercel Functions](https://vercel.com/docs/functions)
 - [Vercel Environment Variables](https://vercel.com/docs/environment-variables)
+- [GitHub Actions with Vercel](https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel)
 
 ### Project root
 
@@ -188,6 +191,34 @@ Optional:
 
 - `PORT`
 
+### GitHub Actions secrets vs Vercel environment variables
+
+These are two different systems.
+
+- GitHub Actions secrets are available only while the GitHub workflow is running
+- Vercel environment variables live in the Vercel project and are available to the deployed Functions
+
+If you use Vercel's built-in Git integration, GitHub Actions secrets are not automatically passed to Vercel.
+
+If you use GitHub Actions to deploy to Vercel, you can pass secrets during deploy using the Vercel CLI. This repository includes an example workflow in [`.github/workflows/vercel-production.yml`](/Users/gaogao/Documents/New%20project/.github/workflows/vercel-production.yml).
+
+Recommended GitHub secrets:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `MYSQL_HOST`
+- `MYSQL_PORT`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
+- `MYSQL_DATABASE`
+
+Important:
+
+- if you later redeploy from the Vercel dashboard directly, those GitHub-only secrets will not be reused automatically
+- for long-term stability, I recommend also storing the same `MYSQL_*` values in the Vercel project settings
+- use one deployment path consistently: either Vercel Git integration or GitHub Actions, to avoid duplicate deployments
+
 ### Deploy from the dashboard
 
 1. Push the project to GitHub.
@@ -196,6 +227,8 @@ Optional:
 4. Set `Root Directory` to `api-service`.
 5. Add the environment variables.
 6. Deploy.
+
+This is the simplest option if you want Vercel to manage deployments directly.
 
 ### Deploy from the CLI
 
@@ -210,6 +243,20 @@ For a production deployment:
 ```bash
 vercel --prod
 ```
+
+### Deploy from GitHub Actions
+
+This repository includes a production workflow:
+
+- [`.github/workflows/vercel-production.yml`](/Users/gaogao/Documents/New%20project/.github/workflows/vercel-production.yml)
+
+It follows Vercel's GitHub Actions guidance by using:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
+and passes the `MYSQL_*` values from GitHub secrets to the production deployment.
 
 ### Verify the Vercel deployment
 
