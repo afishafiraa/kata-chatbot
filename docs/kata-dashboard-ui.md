@@ -22,7 +22,7 @@ This guide is adjusted for the Bot Studio UI shown in your screenshots.
 
 Build and run the API service first.
 
-You already have the starter service in [`api-service/`](/Users/gaogao/Documents/New%20project/api-service/README.md). For Kata, `validateName` needs a real API URL for:
+You already have the starter service in [`api-service/`](../api-service/README.md). For Kata, `validateName` needs a real API URL for:
 
 - `POST /api/register`
 
@@ -386,7 +386,7 @@ Practical warning:
 
 Before you configure the Kata API action, verify the registration API works.
 
-See [`api-service/README.md`](/Users/gaogao/Documents/New%20project/api-service/README.md) for setup and test commands.
+See [`api-service/README.md`](../api-service/README.md) for setup and test commands.
 
 Telegram bot channel for final testing:
 

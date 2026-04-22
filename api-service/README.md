@@ -158,14 +158,14 @@ Official references:
 
 This project also includes:
 
-- [`vercel.json`](/Users/gaogao/Documents/New%20project/api-service/vercel.json)
-- [`api/index.js`](/Users/gaogao/Documents/New%20project/api-service/api/index.js)
+- [`vercel.json`](vercel.json)
+- [`api/index.js`](api/index.js)
 
 That follows Vercel's documented Express pattern of routing incoming requests to an API entrypoint, which is useful when a deployment completes successfully but otherwise serves `404`.
 
 ### Project root
 
-Deploy [`api-service/`](/Users/gaogao/Documents/New%20project/api-service) as its own Vercel project.
+Deploy `api-service/` as its own Vercel project.
 
 If you import the whole repository into Vercel, set:
 
@@ -211,7 +211,7 @@ These are two different systems.
 
 If you use Vercel's built-in Git integration, GitHub Actions secrets are not automatically passed to Vercel.
 
-If you use GitHub Actions to deploy to Vercel, you can pass secrets during deploy using the Vercel CLI. This repository includes an example workflow in [`.github/workflows/vercel-production.yml`](/Users/gaogao/Documents/New%20project/.github/workflows/vercel-production.yml).
+If you use GitHub Actions to deploy to Vercel, you can pass secrets during deploy using the Vercel CLI. This repository includes an example workflow in [`.github/workflows/vercel-production.yml`](../.github/workflows/vercel-production.yml).
 
 Recommended GitHub secrets:
 
@@ -243,7 +243,7 @@ This is the simplest option if you want Vercel to manage deployments directly.
 
 ### Deploy from the CLI
 
-Run this from inside [`api-service/`](/Users/gaogao/Documents/New%20project/api-service):
+Run this from inside `api-service/`:
 
 ```bash
 vercel
@@ -259,7 +259,7 @@ vercel --prod
 
 This repository includes a production workflow:
 
-- [`.github/workflows/vercel-production.yml`](/Users/gaogao/Documents/New%20project/.github/workflows/vercel-production.yml)
+- [`.github/workflows/vercel-production.yml`](../.github/workflows/vercel-production.yml)
 
 It follows Vercel's GitHub Actions guidance by using:
 
