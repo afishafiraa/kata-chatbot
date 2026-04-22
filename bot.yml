@@ -68,7 +68,7 @@ flows:
                 transitions:
                     registrationSuccess:
                         fallback: false
-                        condition: 'ntent == "registerStatus" && payload.success'
+                        condition: 'intent == "registerStatus" && payload.success'
                         priority: 1
                     registrationFailed:
                         fallback: true

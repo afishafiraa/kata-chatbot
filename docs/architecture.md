@@ -1,34 +1,24 @@
-# Architecture Diagram
+# Architecture
+
+## System Overview
 
 ```mermaid
 flowchart LR
-    U["Telegram user"] --> T["Telegram Bot"]
-    T --> K["Kata Platform Bot Flow"]
-    K --> N["Supermodel / Kata Entity\n(person label for name validation)"]
-    K --> A["API Service (Node.js / Express)"]
-    A --> D["MySQL database\n(registered users)"]
-    A --> P["PokeAPI\npokemon + species + evolution"]
+    U["Telegram User"] --> K["Kata Platform"]
+    K --> N["Supermodel NLU"]
+    K --> A["API Service"]
+    A --> D["MySQL"]
+    A --> P["PokeAPI"]
 ```
 
-## Relationship summary
+## Components
 
-- Telegram delivers user messages to the bot channel configured in Kata Platform.
-- Kata Platform manages the conversation flow:
-  - asks for registration
-  - validates the name using Supermodel `person`
-  - calls external APIs using Sync API actions
-- The API service stores the registered user in MySQL.
-- The API service also fetches Pokemon data from PokeAPI, formats the detailed response, and returns JSON to Kata Platform.
+- **Kata Platform**: Manages conversation flow, validates names via Supermodel
+- **API Service**: Node.js + Express on Vercel
+- **MySQL**: Stores registered users
+- **PokeAPI**: External Pokemon data source
 
-## Suggested technology choices
+## Deployment
 
-- Chatbot platform: Kata Platform
-- Messaging channel: Telegram ([`@pokkemonTestBot`](https://t.me/pokkemonTestBot))
-- API service: Node.js + Express
-- Database: MySQL
-- External data source: PokeAPI
-
-## Current deployment
-
-- API base URL: [https://kata-chatbot.vercel.app](https://kata-chatbot.vercel.app)
-- Telegram bot: [https://t.me/pokkemonTestBot](https://t.me/pokkemonTestBot)
+- API: [https://kata-chatbot.vercel.app](https://kata-chatbot.vercel.app)
+- Bot: [https://t.me/pokkemonTestBot](https://t.me/pokkemonTestBot)
